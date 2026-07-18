@@ -1,0 +1,32 @@
+# terraform.tfvars.example - Example variable values
+
+project_name   = "tableau"
+environment    = "dev"
+aws_region     = "us-east-1"
+
+vpc_cidr               = "10.0.0.0/16"
+public_subnet_cidrs    = ["10.0.1.0/24", "10.0.2.0/24"]
+private_subnet_cidrs   = ["10.0.10.0/24", "10.0.11.0/24"]
+data_subnet_cidrs      = ["10.0.20.0/24", "10.0.21.0/24"]
+
+tableau_node_count      = 2
+tableau_instance_type   = "t3.xlarge"
+bastion_instance_type   = "t3.micro"
+tableau_data_volume_size = 500
+
+enable_bastion = true
+
+certificate_arn = "arn:aws:acm:us-east-1:123456789012:certificate/your-cert-id"
+
+ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
+
+tags = {
+  Project     = "Tableau"
+  ManagedBy   = "Terraform"
+  Environment = "dev"
+}
+
+# Sensitive variables (set via TF_VAR_* or .env file)
+# tableau_license_key = "XXXX-XXXX-XXXX-XXXX"
+# tableau_admin_password = "YourSecurePassword123!"
+# repository_password = "YourDBPassword123!"

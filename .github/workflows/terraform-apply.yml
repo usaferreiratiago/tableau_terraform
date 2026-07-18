@@ -1,0 +1,37 @@
+name: 'Terraform Apply'
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  terraform:
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for OIDC authentication to AWS
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::YOUR_ACCOUNT_ID:role/github-actions-role
+        aws-region: us-east-1
+
+    - name: Setup Terraform
+      uses: haskell-actions/setup@v2
+      with:
+        terraform_version: 1.6.0
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Plan
+      run: terraform plan
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
