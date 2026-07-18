@@ -1,0 +1,114 @@
+# ==========================
+# Terraform
+# ==========================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform.lock.hcl
+
+# Terraform plan files
+*.tfplan
+*.plan
+
+# ==========================
+# Environment variables
+# ==========================
+
+.env
+.env.*
+!.env.example
+
+# ==========================
+# Secrets / Credentials
+# ==========================
+
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+
+credentials.json
+service-account.json
+
+# AWS
+.aws/
+aws-credentials
+
+# Azure
+.azure/
+
+# GCP
+gcp-key.json
+
+# ==========================
+# IDE
+# ==========================
+
+.vscode/
+.idea/
+*.code-workspace
+
+# ==========================
+# Operating System
+# ==========================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ==========================
+# Logs
+# ==========================
+
+*.log
+logs/
+
+# ==========================
+# Temporary files
+# ==========================
+
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ==========================
+# Python (caso utilize scripts)
+# ==========================
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ==========================
+# Node.js (caso utilize)
+# ==========================
+
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================
+# Terraform CLI configuration
+# ==========================
+
+.terraformrc
+terraform.rc
