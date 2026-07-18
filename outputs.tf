@@ -2,12 +2,12 @@
 
 output "alb_dns_name" {
   description = "DNS name of the Application Load Balancer"
-  value       = aws_lb.tableau.dns_name
+  value       = try(aws_lb.tableau[0].dns_name, null)
 }
 
 output "alb_zone_id" {
   description = "Zone ID of the ALB for Route53 records"
-  value       = aws_lb.tableau.zone_id
+  value       = try(aws_lb.tableau[0].zone_id, null)
 }
 
 output "bastion_public_ip" {
@@ -67,5 +67,5 @@ output "bastion_sg_id" {
 
 output "tableau_url" {
   description = "URL to access Tableau Server"
-  value       = "https://${aws_lb.tableau.dns_name}"
+  value       = try("https://${aws_lb.tableau[0].dns_name}", null)
 }

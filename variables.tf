@@ -49,7 +49,7 @@ variable "data_subnet_cidrs" {
 variable "allowed_ssh_cidrs" {
   description = "CIDR blocks allowed to SSH into Bastion"
   type        = list(string)
-  default     = ["0.0.0.0/0"] # Restrict in production!
+  default     = ["0.0.0.0/0"] # ⚠️ RESTRICT IN PRODUCTION!
 }
 
 # ============================================

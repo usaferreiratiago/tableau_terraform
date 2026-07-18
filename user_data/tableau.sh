@@ -4,16 +4,16 @@
 set -e
 
 # Variables from Terraform
-PROJECT_NAME="${project_name}"
-NODE_INDEX="${node_index}"
-LICENSE_KEY="${license_key}"
-ADMIN_USER="${admin_user}"
-ADMIN_PASSWORD="${admin_password}"
-REPOSITORY_HOST="${repository_host}"
-REPOSITORY_PORT="${repository_port}"
-REPOSITORY_DBNAME="${repository_dbname}"
-REPOSITORY_USER="${repository_username}"
-REPOSITORY_PASS="${repository_password}"
+PROJECT_NAME="${project_name:-tableau}"
+NODE_INDEX="${node_index:-1}"
+LICENSE_KEY="${license_key:-}"
+ADMIN_USER="${admin_user:-admin}"
+ADMIN_PASSWORD="${admin_password:-}"
+REPOSITORY_HOST="${repository_host:-}"
+REPOSITORY_PORT="${repository_port:-5432}"
+REPOSITORY_DBNAME="${repository_dbname:-tableau}"
+REPOSITORY_USER="${repository_username:-}"
+REPOSITORY_PASS="${repository_password:-}"
 
 # Logging
 exec > >(tee /var/log/tableau-bootstrap.log)
@@ -39,27 +39,45 @@ if [ -e /dev/sdf ]; then
     echo "/dev/sdf /var/opt/tableau xfs defaults,nofail 0 2" >> /etc/fstab
 fi
 
-# Download Tableau Server (example - replace with actual download)
-if [ ! -z "${LICENSE_KEY}" ]; then
-    echo "Installing Tableau Server..."
-    # This is a placeholder - replace with actual Tableau installation commands
-    # Example: wget https://downloads.tableau.com/tssoftware/tableau-server-2024.1.0.x86_64.rpm
-    # rpm -ivh tableau-server-*.rpm
-    
-    # Configure Tableau Server
-    # /opt/tableau/tableau_server/packages/scripts.xx.xx.xx/initialize-tsm
-    
-    # Set admin user
-    # tsm users create -u ${ADMIN_USER} -p ${ADMIN_PASSWORD}
-    
-    # Configure repository connection
-    # tsm topology set-node-role -n node${NODE_INDEX} -r backgrounder,data-engine,...
-    
-    # Start Tableau Server
-    # tsm start
-else
-    echo "No license key provided - skipping Tableau installation"
+# Check if license key is provided
+if [ -z "${LICENSE_KEY}" ]; then
+    echo "WARNING: No license key provided. Tableau will not be installed."
+    echo "Set TF_VAR_tableau_license_key environment variable to install."
+    exit 0
 fi
+
+# Download Tableau Server (EXAMPLE - REPLACE WITH ACTUAL DOWNLOAD)
+echo "Downloading Tableau Server..."
+# Replace with actual Tableau download URL
+# wget -O /tmp/tableau-server.rpm "https://downloads.tableau.com/tssoftware/tableau-server-2024.1.0.x86_64.rpm"
+
+# Install Tableau Server
+# rpm -ivh /tmp/tableau-server.rpm
+
+# Initialize Tableau Server
+# /opt/tableau/tableau_server/packages/scripts.xx.xx.xx/initialize-tsm
+
+# Create admin user
+# if [ ! -z "${ADMIN_USER}" ] && [ ! -z "${ADMIN_PASSWORD}" ]; then
+#     tsm users create -u ${ADMIN_USER} -p ${ADMIN_PASSWORD}
+# fi
+
+# Configure repository if provided
+# if [ ! -z "${REPOSITORY_HOST}" ]; then
+#     echo "Configuring external repository: ${REPOSITORY_HOST}"
+#     tsm topology set-repository-connection \
+#         -host ${REPOSITORY_HOST} \
+#         -port ${REPOSITORY_PORT} \
+#         -dbname ${REPOSITORY_DBNAME} \
+#         -username ${REPOSITORY_USER} \
+#         -password ${REPOSITORY_PASS}
+# fi
+
+# Configure node role
+# tsm topology set-node-role -n node${NODE_INDEX} -r backgrounder,data-engine,interactive,gateway
+
+# Start Tableau Server
+# tsm start
 
 echo "=========================================="
 echo "Tableau Server bootstrap completed"

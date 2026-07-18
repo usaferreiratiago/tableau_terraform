@@ -1,20 +1,4 @@
 # main.tf - Complete Tableau Server Infrastructure on AWS
-# This configuration follows Tableau's Enterprise Deployment Guide (EDG) reference architecture
-
-terraform {
-  required_version = ">= 1.0.0"
-  
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
-  }
-}
 
 # ============================================
 # DATA SOURCES
@@ -39,11 +23,12 @@ data "aws_ami" "amazon_linux_2" {
   }
 }
 
+data "aws_caller_identity" "current" {}
+
 # ============================================
 # NETWORKING
 # ============================================
 
-# VPC with CIDR block
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_hostnames = true
@@ -54,7 +39,6 @@ resource "aws_vpc" "main" {
   })
 }
 
-# Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -63,13 +47,11 @@ resource "aws_internet_gateway" "main" {
   })
 }
 
-# Public Subnets (for Bastion and Proxy servers)
 resource "aws_subnet" "public" {
   count             = length(var.public_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
   cidr_block        = var.public_subnet_cidrs[count.index]
   availability_zone = data.aws_availability_zones.available.names[count.index]
-
   map_public_ip_on_launch = true
 
   tags = merge(var.tags, {
@@ -78,7 +60,6 @@ resource "aws_subnet" "public" {
   })
 }
 
-# Private Subnets (for Tableau Server nodes)
 resource "aws_subnet" "private" {
   count             = length(var.private_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
@@ -91,7 +72,6 @@ resource "aws_subnet" "private" {
   })
 }
 
-# Data Subnets (for Repository database)
 resource "aws_subnet" "data" {
   count             = length(var.data_subnet_cidrs)
   vpc_id            = aws_vpc.main.id
@@ -104,11 +84,7 @@ resource "aws_subnet" "data" {
   })
 }
 
-# ============================================
-# ROUTING
-# ============================================
-
-# Public Route Table
+# Route Tables
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -122,14 +98,12 @@ resource "aws_route_table" "public" {
   })
 }
 
-# Public Route Table Associations
 resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
-# Private Route Table (No direct internet access)
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
@@ -138,14 +112,12 @@ resource "aws_route_table" "private" {
   })
 }
 
-# Private Route Table Associations
 resource "aws_route_table_association" "private" {
   count          = length(aws_subnet.private)
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private.id
 }
 
-# Data Route Table
 resource "aws_route_table" "data" {
   vpc_id = aws_vpc.main.id
 
@@ -154,7 +126,6 @@ resource "aws_route_table" "data" {
   })
 }
 
-# Data Route Table Associations
 resource "aws_route_table_association" "data" {
   count          = length(aws_subnet.data)
   subnet_id      = aws_subnet.data[count.index].id
@@ -165,7 +136,6 @@ resource "aws_route_table_association" "data" {
 # SECURITY GROUPS
 # ============================================
 
-# Bastion Host Security Group
 resource "aws_security_group" "bastion" {
   name        = "${var.project_name}-bastion-sg"
   description = "Security group for Bastion host"
@@ -191,13 +161,11 @@ resource "aws_security_group" "bastion" {
   })
 }
 
-# Tableau Server Security Group
 resource "aws_security_group" "tableau" {
   name        = "${var.project_name}-tableau-sg"
   description = "Security group for Tableau Server nodes"
   vpc_id      = aws_vpc.main.id
 
-  # SSH from Bastion only
   ingress {
     from_port       = 22
     to_port         = 22
@@ -206,12 +174,11 @@ resource "aws_security_group" "tableau" {
     description     = "SSH from Bastion host"
   }
 
-  # Tableau Server Ports
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict in production!
+    cidr_blocks = ["0.0.0.0/0"]
     description = "HTTP access"
   }
 
@@ -219,7 +186,7 @@ resource "aws_security_group" "tableau" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Restrict in production!
+    cidr_blocks = ["0.0.0.0/0"]
     description = "HTTPS access"
   }
 
@@ -229,15 +196,6 @@ resource "aws_security_group" "tableau" {
     protocol    = "tcp"
     cidr_blocks = [var.vpc_cidr]
     description = "Tableau internal services"
-  }
-
-  # PostgreSQL for repository (if using internal database)
-  ingress {
-    from_port   = 5432
-    to_port     = 5432
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc_cidr]
-    description = "PostgreSQL access within VPC"
   }
 
   egress {
@@ -252,7 +210,6 @@ resource "aws_security_group" "tableau" {
   })
 }
 
-# Load Balancer Security Group
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
   description = "Security group for Application Load Balancer"
@@ -287,10 +244,9 @@ resource "aws_security_group" "alb" {
 }
 
 # ============================================
-# IAM ROLES & POLICIES
+# IAM ROLES
 # ============================================
 
-# EC2 Instance Profile for Tableau Servers
 resource "aws_iam_role" "tableau_ec2_role" {
   name = "${var.project_name}-ec2-role"
 
@@ -325,33 +281,6 @@ resource "aws_iam_instance_profile" "tableau" {
   role = aws_iam_role.tableau_ec2_role.name
 }
 
-# Policy to prevent production destruction
-resource "aws_iam_policy" "prevent_production_destroy" {
-  name        = "${var.project_name}-prevent-destroy"
-  description = "Prevents accidental destruction of production resources"
-  policy      = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Deny"
-        Action = [
-          "ec2:TerminateInstances",
-          "rds:DeleteDBInstance",
-          "s3:DeleteBucket"
-        ]
-        Resource = "*"
-        Condition = {
-          StringEquals = {
-            "aws:RequestTag/Environment" = "production"
-          }
-        }
-      }
-    ]
-  })
-
-  tags = var.tags
-}
-
 # ============================================
 # KEY PAIR
 # ============================================
@@ -375,7 +304,6 @@ resource "aws_instance" "bastion" {
   subnet_id              = aws_subnet.public[0].id
   vpc_security_group_ids = [aws_security_group.bastion.id]
   iam_instance_profile   = aws_iam_instance_profile.tableau.name
-
   associate_public_ip_address = true
 
   root_block_device {
@@ -406,7 +334,6 @@ resource "aws_instance" "tableau_server" {
   subnet_id              = aws_subnet.private[count.index % length(aws_subnet.private)].id
   vpc_security_group_ids = [aws_security_group.tableau.id]
   iam_instance_profile   = aws_iam_instance_profile.tableau.name
-
   associate_public_ip_address = false
 
   root_block_device {
@@ -456,6 +383,8 @@ resource "aws_instance" "tableau_server" {
 # ============================================
 
 resource "aws_lb" "tableau" {
+  count = var.tableau_node_count > 0 ? 1 : 0
+  
   name               = "${var.project_name}-alb"
   internal           = false
   load_balancer_type = "application"
@@ -464,19 +393,14 @@ resource "aws_lb" "tableau" {
 
   enable_deletion_protection = var.environment == "production" ? true : false
 
-  access_logs {
-    bucket  = aws_s3_bucket.alb_logs.bucket
-    prefix  = "tableau-alb-logs"
-    enabled = true
-  }
-
   tags = merge(var.tags, {
     Name = "${var.project_name}-alb"
   })
 }
 
-# Target Group for Tableau Servers
 resource "aws_lb_target_group" "tableau" {
+  count = var.tableau_node_count > 0 ? 1 : 0
+  
   name     = "${var.project_name}-tg"
   port     = 443
   protocol = "HTTPS"
@@ -502,21 +426,19 @@ resource "aws_lb_target_group" "tableau" {
   tags = merge(var.tags, {
     Name = "${var.project_name}-tg"
   })
-
-  depends_on = [aws_lb.tableau]
 }
 
-# Target Group Attachment
 resource "aws_lb_target_group_attachment" "tableau" {
-  count            = var.tableau_node_count
-  target_group_arn = aws_lb_target_group.tableau.arn
+  count            = var.tableau_node_count > 0 ? var.tableau_node_count : 0
+  target_group_arn = aws_lb_target_group.tableau[0].arn
   target_id        = aws_instance.tableau_server[count.index].id
   port             = 443
 }
 
-# HTTP Listener (redirect to HTTPS)
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.tableau.arn
+  count = var.tableau_node_count > 0 ? 1 : 0
+  
+  load_balancer_arn = aws_lb.tableau[0].arn
   port              = 80
   protocol          = "HTTP"
 
@@ -531,9 +453,10 @@ resource "aws_lb_listener" "http" {
   }
 }
 
-# HTTPS Listener
 resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.tableau.arn
+  count = var.tableau_node_count > 0 && var.certificate_arn != "" ? 1 : 0
+  
+  load_balancer_arn = aws_lb.tableau[0].arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
@@ -541,95 +464,6 @@ resource "aws_lb_listener" "https" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.tableau.arn
+    target_group_arn = aws_lb_target_group.tableau[0].arn
   }
-}
-
-# ============================================
-# S3 BUCKET FOR ALB LOGS
-# ============================================
-
-resource "aws_s3_bucket" "alb_logs" {
-  bucket = "${var.project_name}-alb-logs-${data.aws_caller_identity.current.account_id}"
-  acl    = "private"
-
-  lifecycle {
-    prevent_destroy = false
-  }
-
-  tags = var.tags
-}
-
-resource "aws_s3_bucket_public_access_block" "alb_logs" {
-  bucket = aws_s3_bucket.alb_logs.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_policy" "alb_logs" {
-  bucket = aws_s3_bucket.alb_logs.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "delivery.logs.amazonaws.com"
-        }
-        Action = "s3:PutObject"
-        Resource = "${aws_s3_bucket.alb_logs.arn}/*"
-        Condition = {
-          StringEquals = {
-            "s3:x-amz-acl" = "bucket-owner-full-control"
-          }
-        }
-      },
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "delivery.logs.amazonaws.com"
-        }
-        Action = "s3:GetBucketAcl"
-        Resource = aws_s3_bucket.alb_logs.arn
-      }
-    ]
-  })
-}
-
-# ============================================
-# DATA SOURCES (Caller Identity for bucket naming)
-# ============================================
-
-data "aws_caller_identity" "current" {}
-
-# ============================================
-# OUTPUTS
-# ============================================
-
-output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
-  value       = aws_lb.tableau.dns_name
-}
-
-output "bastion_public_ip" {
-  description = "Public IP of the Bastion host"
-  value       = try(aws_instance.bastion[0].public_ip, null)
-}
-
-output "tableau_server_private_ips" {
-  description = "Private IPs of the Tableau server nodes"
-  value       = aws_instance.tableau_server[*].private_ip
-}
-
-output "vpc_id" {
-  description = "ID of the VPC"
-  value       = aws_vpc.main.id
-}
-
-output "vpc_cidr" {
-  description = "CIDR block of the VPC"
-  value       = aws_vpc.main.cidr_block
 }
