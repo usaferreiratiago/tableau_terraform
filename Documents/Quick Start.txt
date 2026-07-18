@@ -1,0 +1,25 @@
+# 1. Remove duplicate files
+cd ~/Documents/tableau_terraform
+rm -f backend.tf.txt main.tf.txt
+
+# 2. Validate Terraform files
+terraform fmt -recursive
+terraform validate
+
+# 3. Create your terraform.tfvars
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values (non-sensitive only)
+
+# 4. Set sensitive variables
+export TF_VAR_tableau_license_key="YOUR-LICENSE-KEY"
+export TF_VAR_tableau_admin_password="YourSecurePassword"
+export TF_VAR_ssh_public_key="$(cat ~/.ssh/id_rsa.pub)"
+
+# 5. Initialize
+terraform init
+
+# 6. Plan
+terraform plan
+
+# 7. Apply (when ready)
+terraform apply
