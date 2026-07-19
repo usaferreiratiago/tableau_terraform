@@ -1,57 +1,16 @@
-variable "project_name" {
-
+variable "region" {
+  description = "AWS region for deployment"
   type        = string
-  description = "Project name"
+  default     = "us-east-1"
+}
 
-  default = "tableau"
-
+variable "project_name" {
+  description = "Name of the project (used for resource tagging)"
+  type        = string
+  default     = "tableau-server"
 }
 
 variable "environment" {
-
+  description = "Environment name (e.g., dev, prod, qa)"
   type        = string
-  description = "Deployment environment"
-
-  default = "dev"
-
-}
-
-variable "aws_region" {
-
-  type = string
-
-  default = "us-east-1"
-
-}
-
-variable "owner" {
-
-  type = string
-
-  default = "Tiago Ferreira"
-
-}
-
-variable "vpc_cidr" {
-
-  type = string
-
-  default = "10.0.0.0/16"
-
-}
-
-variable "instance_type" {
-
-  type = string
-
-  default = "m6i.xlarge"
-
-}
-
-variable "tableau_version" {
-
-  type = string
-
-  default = "latest"
-
 }
