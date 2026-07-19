@@ -12,3 +12,11 @@ variable "tableau_admin_pass" {
   type      = string
   sensitive = true
 }
+
+variable "instance_private_ip" {
+  description = "Private IP address of the Tableau EC2 instance"
+
+  type = string
+
+  nullable = false
+}
