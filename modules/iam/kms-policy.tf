@@ -1,13 +1,12 @@
+# Use an explicit resource ARN instead of "*"
 resource "aws_iam_policy" "kms" {
-  name        = "${local.name_prefix}-kms-policy"
-  description = "Decrypt KMS keys for secrets"
-
+  name = "${var.project_name}-kms-policy"
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Action   = ["kms:Decrypt"]
+      Action   = ["kms:Decrypt", "kms:DescribeKey"]
       Effect   = "Allow"
-      Resource = "*" # Ideally replace with the specific KMS Key ARN
+      Resource = [var.kms_key_arn] # Pass this in as a variable
     }]
   })
 }

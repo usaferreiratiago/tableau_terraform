@@ -13,7 +13,12 @@ resource "aws_sns_topic_subscription" "email" {
 resource "aws_cloudwatch_log_group" "tableau_logs" {
   name              = "/tableau/server/logs"
   retention_in_days = var.log_retention_days
-  tags              = local.common_tags
+  kms_key_id        = var.kms_key_arn # Apply KMS encryption
+}
+
+resource "aws_sns_topic" "alerts" {
+  name              = "${var.project_name}-alerts"
+  kms_master_key_id = var.kms_key_arn # Apply KMS encryption
 }
 
 # 3. CPU Alarm (Example of proactive monitoring)

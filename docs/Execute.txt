@@ -6,6 +6,4 @@ tfsec . --recursive
 
 trivy config .
 
-trivy config .
-
 pre-commit run -a

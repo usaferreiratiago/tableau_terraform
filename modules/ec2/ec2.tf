@@ -5,8 +5,13 @@ resource "aws_instance" "tableau" {
   iam_instance_profile = var.iam_instance_profile
   vpc_security_group_ids = local.security_groups
   user_data            = data.template_file.user_data.rendered
-
+  metadata_options {
+    http_tokens   = "required" # Forces IMDSv2
+    http_endpoint = "enabled"
+  }
+  
   root_block_device {
+    encrypted   = true # Fixes the root device encryption error
     volume_size = 100
     volume_type = "gp3"
   }
