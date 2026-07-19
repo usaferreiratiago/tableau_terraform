@@ -1,199 +1,69 @@
-############################################
-# ALB SECURITY GROUP
-############################################
+# 1. ALB Security Group (Public facing)
+module "alb_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.1.0"
 
-resource "aws_security_group" "alb" {
+  name        = "${local.name_prefix}-alb-sg"
+  description = "Security group for Tableau ALB"
+  vpc_id      = var.vpc_id
 
-  name        = "${var.project_name}-${var.environment}-alb"
-  description = "Application Load Balancer"
+  ingress_cidr_blocks = ["0.0.0.0/0"]
+  ingress_rules       = ["https-443-tcp", "http-80-tcp"]
+  egress_rules        = ["all-all"]
 
-  vpc_id = var.vpc_id
-
-  tags = {
-
-    Name = "${var.project_name}-alb"
-
-  }
-
+  tags = local.tags
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb_https" {
+# 2. Tableau EC2 Security Group
+module "tableau_ec2_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.1.0"
 
-  security_group_id = aws_security_group.alb.id
+  name        = "${local.name_prefix}-ec2-sg"
+  description = "Security group for Tableau Server EC2"
+  vpc_id      = var.vpc_id
 
-  ip_protocol = "tcp"
-
-  from_port = 443
-
-  to_port = 443
-
-  cidr_ipv4 = "0.0.0.0/0"
-
+  # Allow traffic from ALB
+  ingress_with_source_security_group_id = [
+    {
+      rule                     = "http-80-tcp"
+      source_security_group_id = module.alb_sg.security_group_id
+    },
+    {
+      rule                     = "https-443-tcp"
+      source_security_group_id = module.alb_sg.security_group_id
+    },
+    {
+      from_port                = 8850
+      to_port                  = 8850
+      protocol                 = "tcp"
+      description              = "Tableau TSM"
+      source_security_group_id = module.alb_sg.security_group_id
+    }
+  ]
+  
+  egress_rules = ["all-all"]
+  tags         = local.tags
 }
 
-resource "aws_vpc_security_group_ingress_rule" "alb_http" {
+# 3. RDS Security Group
+module "rds_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.1.0"
 
-  security_group_id = aws_security_group.alb.id
+  name        = "${local.name_prefix}-rds-sg"
+  description = "Security group for Tableau RDS"
+  vpc_id      = var.vpc_id
 
-  ip_protocol = "tcp"
-
-  from_port = 80
-
-  to_port = 80
-
-  cidr_ipv4 = "0.0.0.0/0"
-
+  ingress_with_source_security_group_id = [
+    {
+      from_port                = 5432
+      to_port                  = 5432
+      protocol                 = "tcp"
+      description              = "PostgreSQL from EC2"
+      source_security_group_id = module.tableau_ec2_sg.security_group_id
+    }
+  ]
+  egress_rules = ["all-all"]
+  tags         = local.tags
 }
-
-resource "aws_vpc_security_group_egress_rule" "alb_all" {
-
-  security_group_id = aws_security_group.alb.id
-
-  ip_protocol = "-1"
-
-  cidr_ipv4 = "0.0.0.0/0"
-
-}
-
-############################################
-# TABLEAU SERVER
-############################################
-
-resource "aws_security_group" "tableau" {
-
-  name = "${var.project_name}-${var.environment}-tableau"
-
-  description = "Tableau Server"
-
-  vpc_id = var.vpc_id
-
-  tags = {
-
-    Name = "${var.project_name}-tableau"
-
-  }
-
-}
-
-resource "aws_vpc_security_group_ingress_rule" "tableau_https" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  referenced_security_group_id = aws_security_group.alb.id
-
-  ip_protocol = "tcp"
-
-  from_port = 443
-
-  to_port = 443
-
-}
-
-resource "aws_vpc_security_group_ingress_rule" "gateway" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  referenced_security_group_id = aws_security_group.alb.id
-
-  ip_protocol = "tcp"
-
-  from_port = 8850
-
-  to_port = 8850
-
-}
-
-resource "aws_vpc_security_group_ingress_rule" "coordination" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  referenced_security_group_id = aws_security_group.alb.id
-
-  ip_protocol = "tcp"
-
-  from_port = 8060
-
-  to_port = 8060
-
-}
-
-resource "aws_vpc_security_group_ingress_rule" "pgsql" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  self = true
-
-  ip_protocol = "tcp"
-
-  from_port = 8061
-
-  to_port = 8061
-
-}
-
-############################################
-# OPTIONAL SSH
-############################################
-
-resource "aws_vpc_security_group_ingress_rule" "ssh" {
-
-  count = var.enable_ssh ? length(var.admin_cidr_blocks) : 0
-
-  security_group_id = aws_security_group.tableau.id
-
-  ip_protocol = "tcp"
-
-  from_port = 22
-
-  to_port = 22
-
-  cidr_ipv4 = var.admin_cidr_blocks[count.index]
-
-}
-
-############################################
-# TABLEAU ADMIN
-############################################
-
-resource "aws_vpc_security_group_ingress_rule" "admin" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  referenced_security_group_id = aws_security_group.alb.id
-
-  ip_protocol = "tcp"
-
-  from_port = 8850
-
-  to_port = 8850
-
-}
-
-############################################
-# INTERNAL CLUSTER
-############################################
-
-resource "aws_vpc_security_group_ingress_rule" "internal_all" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  referenced_security_group_id = aws_security_group.tableau.id
-
-  ip_protocol = "-1"
-
-}
-
-############################################
-# EGRESS
-############################################
-
-resource "aws_vpc_security_group_egress_rule" "tableau_all" {
-
-  security_group_id = aws_security_group.tableau.id
-
-  ip_protocol = "-1"
-
-  cidr_ipv4 = "0.0.0.0/0"
-
-}
-

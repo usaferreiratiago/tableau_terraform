@@ -1,15 +1,11 @@
-output "alb_security_group_id" {
-
-  description = "ALB Security Group"
-
-  value = aws_security_group.alb.id
-
+output "alb_sg_id" {
+  value = module.alb_sg.security_group_id
 }
 
-output "tableau_security_group_id" {
+output "tableau_ec2_sg_id" {
+  value = module.tableau_ec2_sg.security_group_id
+}
 
-  description = "Tableau Security Group"
-
-  value = aws_security_group.tableau.id
-
+output "rds_sg_id" {
+  value = module.rds_sg.security_group_id
 }
