@@ -36,7 +36,7 @@ Production-ready Infrastructure as Code for deploying Tableau Server on AWS usin
 ```
 terraform-tableau-aws/
 │
-├── docs/
+├── documents/
 ├── environments/
 ├── modules/
 ├── scripts/
