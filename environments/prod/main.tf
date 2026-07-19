@@ -1,3 +1,13 @@
+variable "ami_id" {
+  description = "AMI ID for EC2 instance"
+  type        = string
+}
+
+variable "db_username" {
+  description = "Database username for RDS instance"
+  type        = string
+}
+
 # 1. Foundation: Network & Security
 module "networking" {
   source = "../../modules/networking"
@@ -30,6 +40,7 @@ module "rds" {
   source = "../../modules/rds"
   vpc_security_group_ids = [module.security.rds_sg_id]
   subnet_ids             = module.networking.private_subnets
+  db_username            = var.db_username
   db_password            = var.db_password
   project_name           = var.project_name
   environment            = var.environment
@@ -44,6 +55,7 @@ module "iam" {
 
 module "ec2" {
   source = "../../modules/ec2"
+  ami_id               = var.ami_id
   subnet_id            = module.networking.private_subnets[0]
   iam_instance_profile = module.iam.instance_profile_name
   vpc_security_group_ids = [module.security.tableau_ec2_sg_id]
@@ -69,5 +81,6 @@ module "tableau" {
   license_key = var.license_key
   tableau_admin_user = "admin"
   tableau_admin_pass = var.db_password # Ideally use a different secret
+  ssh_user           = "ec2-user"
   ssh_key_path       = "~/.ssh/id_rsa"
 }

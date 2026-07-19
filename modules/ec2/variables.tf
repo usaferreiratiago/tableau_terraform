@@ -1,7 +1,10 @@
 variable "project_name" { type = string }
 variable "environment"  { type = string }
-variable "ami_id"       { type = string, default = null }
-variable "instance_type" { 
+variable "ami_id" {
+  type    = string
+  default = null
+}
+variable "instance_type" {
   type    = string
   default = "r5.2xlarge" # Tableau requires significant RAM
 }
