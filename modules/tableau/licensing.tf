@@ -1,4 +1,4 @@
-resource "terraform_data" "license" {
+resource "null_resource" "license" {
   depends_on = [terraform_data.tsm_config]
   connection = local.connection
 
