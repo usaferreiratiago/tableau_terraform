@@ -11,7 +11,9 @@ module "vpc" {
 
   enable_nat_gateway = true
   single_nat_gateway = var.environment == "dev" ? true : false
-  enable_vpn_gateway = false
+  
+  # Add this line below
+  enable_flow_log = true
 
   enable_dns_hostnames = true
   enable_dns_support   = true
