@@ -16,11 +16,6 @@ resource "aws_cloudwatch_log_group" "tableau_logs" {
   kms_key_id        = var.kms_key_arn # Apply KMS encryption
 }
 
-resource "aws_sns_topic" "alerts" {
-  name              = "${var.project_name}-alerts"
-  kms_master_key_id = var.kms_key_arn # Apply KMS encryption
-}
-
 # 3. CPU Alarm (Example of proactive monitoring)
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   alarm_name          = "${var.project_name}-high-cpu"

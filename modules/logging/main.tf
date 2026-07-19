@@ -25,19 +25,23 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
 }
 
 # 3. Enforce HTTPS
-resource "aws_s3_bucket_policy" "force_https" {
+resource "aws_s3_bucket" "logs" {
+  bucket = "${var.project_name}-tableau-logs"
+}
+
+resource "aws_s3_bucket_versioning" "logs" {
   bucket = aws_s3_bucket.logs.id
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Sid       = "AllowSSLRequestsOnly"
-      Effect    = "Deny"
-      Principal = "*"
-      Action    = "s3:*"
-      Resource  = [aws_s3_bucket.logs.arn, "${aws_s3_bucket.logs.arn}/*"]
-      Condition = { Bool = { "aws:SecureTransport" = "false" } }
-    }]
-  })
+  versioning_configuration { status = "Enabled" }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = var.kms_key_arn
+    }
+  }
 }
 
 # 4. Lifecycle Policy for Cost Management
