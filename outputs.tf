@@ -33,10 +33,7 @@ output "ssh_connection_command" {
   value       = "ssh -i ${var.project_name}-key.pem ubuntu@${module.tableau_ec2.public_ip}"
 }
 
-variable "environment" {
-  description = "Deployment environment for the Tableau Server."
-  type        = string
-}
+
 
 variable "project_name" {
   description = "Project name used to construct generated artifact names."

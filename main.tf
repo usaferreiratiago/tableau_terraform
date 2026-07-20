@@ -22,11 +22,11 @@ locals {
     tableau_license_key    = var.tableau_license_key
     tableau_server_fqdn    = var.tableau_server_fqdn
   })
+}
 
-  # selected_subnet_id fallback to var.subnet_id if not computed elsewhere
-
-
-  key_pair_name = var.key_pair_name
+variable "environment" {
+  description = "Deployment environment identifier"
+  type        = string
 }
 
 module "tableau_ec2" {

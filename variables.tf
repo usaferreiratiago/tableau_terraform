@@ -8,12 +8,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "project_name" {
-  description = "Name prefix used for all created resources."
-  type        = string
-  default     = "tableau-server"
-}
-
 variable "tags" {
   description = "Common tags applied to all resources."
   type        = map(string)
