@@ -43,13 +43,13 @@ variable "subnet_id" {
 variable "allowed_ssh_cidrs" {
   description = "CIDR blocks allowed to SSH (port 22) into the instance."
   type        = list(string)
-  default     = ["0.0.0.0/0"] # Restrict this to your own IP/CIDR in production
+  default     = ["10.0.0.1/24"] # Restrict this to your own IP/CIDR in production
 }
 
 variable "allowed_web_cidrs" {
   description = "CIDR blocks allowed to reach Tableau Server web/admin ports (443, 80, 8850)."
   type        = list(string)
-  default     = ["0.0.0.0/0"] # Restrict this to your corporate network/VPN in production
+  default     = ["10.0.0.1/24"] # Restrict this to your corporate network/VPN in production
 }
 
 variable "associate_public_ip" {
