@@ -7,3 +7,8 @@ tfsec . --recursive
 trivy config .
 
 pre-commit run -a
+
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
