@@ -23,3 +23,27 @@ terraform plan
 
 # 7. Apply (when ready)
 terraform apply
+
+-------------------------------------
+
+tableau_terraform/
+├── README.md                       # Full usage instructions
+├── .gitignore                      # Keeps state, secrets, generated key out of git
+├── versions.tf                     # Terraform + provider version constraints
+├── provider.tf                     # AWS provider config
+├── variables.tf                    # All root-level input variables
+├── data.tf                         # VPC/subnet/AMI lookups (default VPC by default)
+├── key_pair.tf                     # Uses existing key pair, or auto-generates one
+├── security_groups.tf              # SG for SSH, HTTPS/HTTP, TSM (8850), internal ports
+├── iam.tf                          # IAM role + instance profile (SSM Session Manager)
+├── main.tf                         # Renders user_data, wires up the EC2 module
+├── outputs.tf                      # Public IP, Tableau/TSM URLs, SSH command
+├── terraform.tfvars.example        # Copy → terraform.tfvars and fill in your values
+├── templates/
+│   ├── user_data.sh.tpl            # Cloud-init: installs & bootstraps Tableau Server
+│   └── registration.json.tpl       # Tableau installer registration file
+└── modules/
+    └── ec2_tableau/
+        ├── main.tf                 # aws_instance resource (encrypted volume, IMDSv2)
+        ├── variables.tf
+        └── outputs.tf
