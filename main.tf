@@ -24,7 +24,7 @@ locals {
   })
 
   # selected_subnet_id fallback to var.subnet_id if not computed elsewhere
-  selected_subnet_id = var.subnet_id
+
 
   key_pair_name = var.key_pair_name
 }
