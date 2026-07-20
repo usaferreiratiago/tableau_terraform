@@ -49,3 +49,9 @@ variable "user_data" {
 variable "tags" {
   type = map(string)
 }
+
+variable "instance_ip" {
+  description = "Optional static private IP to assign to the instance. Null lets AWS auto-assign one."
+  type        = string
+  default     = null
+}

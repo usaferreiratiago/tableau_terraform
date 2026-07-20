@@ -58,6 +58,12 @@ variable "associate_public_ip" {
   default     = true
 }
 
+variable "instance_ip" {
+  description = "Optional static private IP address to assign to the EC2 instance. Must fall within the chosen subnet's CIDR range. Leave null to let AWS assign one automatically."
+  type        = string
+  default     = null
+}
+
 ############################
 # Compute
 ############################

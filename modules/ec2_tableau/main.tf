@@ -6,6 +6,7 @@ resource "aws_instance" "this" {
   key_name                    = var.key_pair_name
   iam_instance_profile        = var.iam_instance_profile
   associate_public_ip_address = var.associate_public_ip
+  private_ip                  = var.instance_ip
   disable_api_termination     = var.enable_termination_protection
   user_data                   = var.user_data
   user_data_replace_on_change = true
@@ -30,4 +31,10 @@ resource "aws_instance" "this" {
   lifecycle {
     ignore_changes = [ami]
   }
+}
+
+resource "aws_instance" "this" {
+  # ...
+  private_ip = var.instance_ip
+  # ...
 }

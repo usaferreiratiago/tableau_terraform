@@ -22,6 +22,10 @@ tableau_license_key    = "XXXX-XXXX-XXXX-XXXX-XXXX"
 tableau_admin_username = "tsadmin"
 tableau_admin_password = "ReplaceWithAStrongPassword!"
 
+# Optional: pin a specific private IP within the subnet's CIDR range.
+# Leave null to let AWS auto-assign one.
+instance_ip = null
+
 tableau_registration = {
   first_name = "Jane"
   last_name  = "Doe"

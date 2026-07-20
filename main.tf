@@ -22,19 +22,25 @@ locals {
     tableau_license_key    = var.tableau_license_key
     tableau_server_fqdn    = var.tableau_server_fqdn
   })
+
+  # selected_subnet_id fallback to var.subnet_id if not computed elsewhere
+  selected_subnet_id = var.subnet_id
+
+  key_pair_name = var.key_pair_name
 }
 
 module "tableau_ec2" {
   source = "./modules/ec2_tableau"
 
   project_name                  = var.project_name
-  ami_id                        = local.ami_id
+  ami_id                        = var.ami_id
   instance_type                 = var.instance_type
   subnet_id                     = local.selected_subnet_id
   security_group_ids            = [aws_security_group.tableau.id]
   key_pair_name                 = local.key_pair_name
   iam_instance_profile          = aws_iam_instance_profile.tableau_instance_profile.name
   associate_public_ip           = var.associate_public_ip
+  instance_ip                   = var.instance_ip
   root_volume_size_gb           = var.root_volume_size_gb
   root_volume_type              = var.root_volume_type
   enable_termination_protection = var.enable_termination_protection
