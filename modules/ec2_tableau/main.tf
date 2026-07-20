@@ -18,9 +18,9 @@ resource "aws_instance" "this" {
 
   root_block_device {
     volume_size           = var.root_volume_size_gb
-    volume_type            = var.root_volume_type
-    encrypted              = true
-    delete_on_termination  = true
+    volume_type           = var.root_volume_type
+    encrypted             = true
+    delete_on_termination = true
   }
 
   metadata_options {
@@ -31,10 +31,10 @@ resource "aws_instance" "this" {
 
   tags = merge(var.tags, {
 
-  Name        = "${var.project_name}-instance"
-  Environment = var.environment
+    Name        = "${var.project_name}-instance"
+    Environment = var.environment
 
-})
+  })
 
   lifecycle {
     ignore_changes = [ami]

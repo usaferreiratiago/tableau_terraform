@@ -46,4 +46,5 @@ module "tableau_ec2" {
   enable_termination_protection = var.enable_termination_protection
   user_data                     = local.user_data
   tags                          = var.tags
+  environment                   = var.environment
 }

@@ -135,18 +135,18 @@ variable "tableau_admin_password" {
 variable "tableau_registration" {
   description = "Registration details required by the Tableau Server installer."
   type = object({
-    first_name  = string
-    last_name   = string
-    email       = string
-    company     = string
-    title       = string
-    department  = string
-    industry    = string
-    phone       = string
-    city        = string
-    state       = string
-    zip         = string
-    country     = string
+    first_name = string
+    last_name  = string
+    email      = string
+    company    = string
+    title      = string
+    department = string
+    industry   = string
+    phone      = string
+    city       = string
+    state      = string
+    zip        = string
+    country    = string
   })
 }
 
