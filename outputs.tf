@@ -24,11 +24,21 @@ output "tsm_admin_url" {
 }
 
 output "ssh_private_key_path" {
-  description = "Path to the generated private key file, if Terraform generated one."
-  value       = var.key_pair_name == null ? "${path.module}/${var.project_name}-key.pem" : "N/A - using existing key pair '${var.key_pair_name}'"
+  description = "Path to the generated private key file."
+  value       = "${path.module}/${var.project_name}-key.pem"
 }
 
 output "ssh_connection_command" {
   description = "Convenience SSH command to connect to the instance."
-  value       = "ssh -i ${var.key_pair_name == null ? "${var.project_name}-key.pem" : "<your-key>.pem"} ubuntu@${module.tableau_ec2.public_ip}"
+  value       = "ssh -i ${var.project_name}-key.pem ubuntu@${module.tableau_ec2.public_ip}"
+}
+
+variable "environment" {
+  description = "Deployment environment for the Tableau Server."
+  type        = string
+}
+
+variable "project_name" {
+  description = "Project name used to construct generated artifact names."
+  type        = string
 }
