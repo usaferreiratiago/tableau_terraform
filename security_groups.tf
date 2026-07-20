@@ -58,6 +58,9 @@ resource "aws_security_group" "tableau" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-sg"
-  })
+
+  Name        = "${var.project_name}-instance"
+  Environment = var.environment
+
+})
 }

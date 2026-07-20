@@ -1,3 +1,8 @@
+variable "environment" {
+  description = "Environment tag for the instance"
+  type        = string
+}
+
 resource "aws_instance" "this" {
   ami                         = var.ami_id
   instance_type               = var.instance_type
@@ -25,8 +30,11 @@ resource "aws_instance" "this" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project_name}-instance"
-  })
+
+  Name        = "${var.project_name}-instance"
+  Environment = var.environment
+
+})
 
   lifecycle {
     ignore_changes = [ami]

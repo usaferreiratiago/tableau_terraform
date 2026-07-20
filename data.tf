@@ -31,5 +31,5 @@ data "aws_ami" "ubuntu" {
 }
 
 locals {
-  ami_id = var.ami_id != null ? var.ami_id : data.aws_ami.ubuntu[0].id
+  ami_id = local.ami_id != null ? local.ami_id : data.aws_ami.ubuntu[0].id
 }
